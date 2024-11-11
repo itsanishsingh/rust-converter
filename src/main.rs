@@ -45,11 +45,32 @@ impl DistanceConverter {
     fn new(value: f32, from: String, to: String) -> DistanceConverter {
         DistanceConverter { value, from, to }
     }
+
+    fn converter(&self) -> Option<f32> {
+        if self.from == "Kg" && self.to == "Pound" {
+            Some(Self::km_to_mile(self.value))
+        } else {
+            None
+        }
+    }
+
+    fn km_to_mile(value: f32) -> f32 {
+        value / 1.6
+    }
 }
 
 enum Converter {
     Mass(MassConverter),
     Distance(DistanceConverter),
+}
+
+impl Converter {
+    fn convert(&self) -> Option<f32> {
+        match self {
+            Self::Mass(f) => MassConverter::converter(f),
+            Self::Distance(f) => DistanceConverter::converter(f),
+        }
+    }
 }
 
 fn mass_conversion() {
@@ -70,9 +91,9 @@ fn mass_conversion() {
 
     println!("{}, {}, {}", value, from, to);
 
-    let mass_object = MassConverter::new(value, from, to);
+    let mass_object = Converter::Mass(MassConverter::new(value, from, to));
 
-    let result = mass_object.converter();
+    let result = mass_object.convert();
 
     match result {
         Some(t) => println!("The value of {} after conversion is {}.", value, t),
@@ -87,6 +108,27 @@ fn distance_conversion() {
     io::stdin()
         .read_line(&mut distance_choice)
         .expect("Failed to read line");
+
+    let choice: Vec<&str> = distance_choice.split_whitespace().collect();
+    let from = String::from(choice[0]);
+    let to = String::from(choice[1]);
+    println!("{}", ASK_FOR_VALUE);
+    let mut value = String::new();
+    io::stdin()
+        .read_line(&mut value)
+        .expect("Failed to read line");
+    let value: f32 = value.trim().parse().expect("Not an valid number");
+
+    println!("{}, {}, {}", value, from, to);
+
+    let distance_object = Converter::Distance(DistanceConverter::new(value, from, to));
+
+    let result = distance_object.convert();
+
+    match result {
+        Some(t) => println!("The value of {} after conversion is {}.", value, t),
+        None => println!("Will Implement later."),
+    }
 }
 
 fn conversion_logic(choice: u32) {
