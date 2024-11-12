@@ -9,6 +9,8 @@ const DISPLAY_DISTANCE_OPTIONS: &str = "1. Km
 const DISPLAY_CONVERSION: &str = "1. Mass
 2. Distance";
 
+const ASK_FOR_UNITS: &str = "Enter the name of units, divided with a space";
+
 const ASK_FOR_VALUE: &str = "Enter a number";
 
 struct MassConverter {
@@ -23,8 +25,10 @@ impl MassConverter {
     }
 
     fn converter(&self) -> Option<f32> {
-        if self.from == "Kg" && self.to == "Pound" {
+        if self.from == "Kg" && self.to == "Pounds" {
             Some(Self::kg_to_pound(self.value))
+        } else if self.from == "Pounds" && self.to == "Kg" {
+            Some(Self::pound_to_kg(self.value))
         } else {
             None
         }
@@ -32,6 +36,10 @@ impl MassConverter {
 
     fn kg_to_pound(value: f32) -> f32 {
         value * 2.2
+    }
+
+    fn pound_to_kg(value: f32) -> f32 {
+        value / 2.2
     }
 }
 
@@ -67,21 +75,25 @@ enum Converter {
 impl Converter {
     fn convert(&self) -> Option<f32> {
         match self {
-            Self::Mass(f) => MassConverter::converter(f),
-            Self::Distance(f) => DistanceConverter::converter(f),
+            Self::Mass(m) => m.converter(),
+            Self::Distance(d) => d.converter(),
         }
     }
 }
 
 fn mass_conversion() {
     println!("{}", DISPLAY_MASS_OPTIONS);
+
+    println!("{}", ASK_FOR_UNITS);
     let mut mass_choice = String::new();
     io::stdin()
         .read_line(&mut mass_choice)
         .expect("Failed to read line");
+
     let choice: Vec<&str> = mass_choice.split_whitespace().collect();
     let from = String::from(choice[0]);
     let to = String::from(choice[1]);
+
     println!("{}", ASK_FOR_VALUE);
     let mut value = String::new();
     io::stdin()
@@ -104,6 +116,7 @@ fn mass_conversion() {
 fn distance_conversion() {
     println!("{}", DISPLAY_DISTANCE_OPTIONS);
 
+    println!("{}", ASK_FOR_UNITS);
     let mut distance_choice = String::new();
     io::stdin()
         .read_line(&mut distance_choice)
