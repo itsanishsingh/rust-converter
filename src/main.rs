@@ -1,7 +1,9 @@
+use core::{f32, panic};
 use std::io;
 
 const DISPLAY_MASS_OPTIONS: &str = "1. Kg
-2. Pounds";
+2. Pound
+3. Gram";
 
 const DISPLAY_DISTANCE_OPTIONS: &str = "1. Km
 2. Miles";
@@ -13,24 +15,40 @@ const ASK_FOR_UNITS: &str = "Enter the name of units, divided with a space";
 
 const ASK_FOR_VALUE: &str = "Enter a number";
 
+enum MassOptions {
+    Kg,
+    Pound,
+    Gram,
+}
+
 struct MassConverter {
     value: f32,
-    from: String,
-    to: String,
+    from: MassOptions,
+    to: MassOptions,
 }
 
 impl MassConverter {
-    fn new(value: f32, from: String, to: String) -> MassConverter {
+    fn new(value: f32, from: MassOptions, to: MassOptions) -> MassConverter {
         MassConverter { value, from, to }
     }
 
-    fn converter(&self) -> Option<f32> {
-        if self.from == "Kg" && self.to == "Pounds" {
-            Some(Self::kg_to_pound(self.value))
-        } else if self.from == "Pounds" && self.to == "Kg" {
-            Some(Self::pound_to_kg(self.value))
-        } else {
-            None
+    fn converter(&self) -> f32 {
+        match self.from {
+            MassOptions::Kg => match self.to {
+                MassOptions::Kg => self.value,
+                MassOptions::Pound => Self::kg_to_pound(self.value),
+                MassOptions::Gram => Self::kg_to_g(self.value),
+            },
+            MassOptions::Pound => match self.to {
+                MassOptions::Kg => Self::pound_to_kg(self.value),
+                MassOptions::Pound => self.value,
+                MassOptions::Gram => Self::pound_to_g(self.value),
+            },
+            MassOptions::Gram => match self.to {
+                MassOptions::Kg => Self::g_to_kg(self.value),
+                MassOptions::Pound => Self::g_to_pound(self.value),
+                MassOptions::Gram => self.value,
+            },
         }
     }
 
@@ -38,8 +56,24 @@ impl MassConverter {
         value * 2.2
     }
 
+    fn kg_to_g(value: f32) -> f32 {
+        value * 1000_f32
+    }
+
     fn pound_to_kg(value: f32) -> f32 {
         value / 2.2
+    }
+
+    fn pound_to_g(value: f32) -> f32 {
+        value / 2.2 * 1000.0
+    }
+
+    fn g_to_kg(value: f32) -> f32 {
+        value / 1000_f32
+    }
+
+    fn g_to_pound(value: f32) -> f32 {
+        value / 1000.0 * 2.2
     }
 }
 
@@ -54,11 +88,11 @@ impl DistanceConverter {
         DistanceConverter { value, from, to }
     }
 
-    fn converter(&self) -> Option<f32> {
+    fn converter(&self) -> f32 {
         if self.from == "Kg" && self.to == "Pound" {
-            Some(Self::km_to_mile(self.value))
+            Self::km_to_mile(self.value)
         } else {
-            None
+            0.0
         }
     }
 
@@ -73,7 +107,7 @@ enum Converter {
 }
 
 impl Converter {
-    fn convert(&self) -> Option<f32> {
+    fn convert(&self) -> f32 {
         match self {
             Self::Mass(m) => m.converter(),
             Self::Distance(d) => d.converter(),
@@ -91,8 +125,8 @@ fn mass_conversion() {
         .expect("Failed to read line");
 
     let choice: Vec<&str> = mass_choice.split_whitespace().collect();
-    let from = String::from(choice[0]);
-    let to = String::from(choice[1]);
+    let from = String::from(choice[0]).to_lowercase();
+    let to = String::from(choice[1]).to_lowercase();
 
     println!("{}", ASK_FOR_VALUE);
     let mut value = String::new();
@@ -101,16 +135,35 @@ fn mass_conversion() {
         .expect("Failed to read line");
     let value: f32 = value.trim().parse().expect("Not an valid number");
 
-    println!("{}, {}, {}", value, from, to);
+    let kg = String::from("kg");
+    let pound = String::from("pound");
+    let g = String::from("gram");
+
+    let from: MassOptions = if from == kg {
+        MassOptions::Kg
+    } else if from == pound {
+        MassOptions::Pound
+    } else if from == g {
+        MassOptions::Gram
+    } else {
+        panic!()
+    };
+
+    let to: MassOptions = if to == kg {
+        MassOptions::Kg
+    } else if to == pound {
+        MassOptions::Pound
+    } else if to == g {
+        MassOptions::Gram
+    } else {
+        panic!()
+    };
 
     let mass_object = Converter::Mass(MassConverter::new(value, from, to));
 
     let result = mass_object.convert();
 
-    match result {
-        Some(t) => println!("The value of {} after conversion is {}.", value, t),
-        None => println!("Will Implement later."),
-    }
+    println!("The value of {} after conversion is {}.", value, result);
 }
 
 fn distance_conversion() {
@@ -123,8 +176,8 @@ fn distance_conversion() {
         .expect("Failed to read line");
 
     let choice: Vec<&str> = distance_choice.split_whitespace().collect();
-    let from = String::from(choice[0]);
-    let to = String::from(choice[1]);
+    let from = String::from(choice[0]).to_lowercase();
+    let to = String::from(choice[1]).to_lowercase();
     println!("{}", ASK_FOR_VALUE);
     let mut value = String::new();
     io::stdin()
@@ -138,10 +191,7 @@ fn distance_conversion() {
 
     let result = distance_object.convert();
 
-    match result {
-        Some(t) => println!("The value of {} after conversion is {}.", value, t),
-        None => println!("Will Implement later."),
-    }
+    println!("The value of {} after conversion is {}.", value, result);
 }
 
 fn conversion_logic(choice: u32) {
