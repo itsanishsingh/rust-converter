@@ -1,5 +1,15 @@
 use std::io;
 
+mod conversions {
+    pub mod distance;
+    pub mod temperature;
+    pub mod weight;
+}
+
+use conversions::distance::{DistanceOptions, DistanceStruct};
+use conversions::temperature::{TemperatureOptions, TemperatureStruct};
+use conversions::weight::{WeightOptions, WeightStruct};
+
 const ASK_FOR_TYPE: &str = "Select the number for one of the following conversion types:
 1. Temperature
 2. Distance
@@ -38,153 +48,6 @@ impl ConversionOptions {
             "2" => Ok(ConversionOptions::Distance),
             "3" => Ok(ConversionOptions::Weight),
             _ => Err(InputError),
-        }
-    }
-}
-
-enum TemperatureOptions {
-    Celcius,
-    Kelvin,
-    Fahrenheit,
-}
-
-impl TemperatureOptions {
-    fn from_str(s: &str) -> Result<TemperatureOptions, InputError> {
-        match s {
-            "1" => Ok(TemperatureOptions::Celcius),
-            "2" => Ok(TemperatureOptions::Kelvin),
-            "3" => Ok(TemperatureOptions::Fahrenheit),
-            _ => Err(InputError),
-        }
-    }
-}
-
-enum DistanceOptions {
-    Km,
-    Meter,
-    Mile,
-}
-
-impl DistanceOptions {
-    fn from_str(s: &str) -> Result<DistanceOptions, InputError> {
-        match s {
-            "1" => Ok(DistanceOptions::Km),
-            "2" => Ok(DistanceOptions::Meter),
-            "3" => Ok(DistanceOptions::Mile),
-            _ => Err(InputError),
-        }
-    }
-}
-
-enum WeightOptions {
-    Kg,
-    Gram,
-    Pound,
-}
-
-impl WeightOptions {
-    fn from_str(s: &str) -> Result<WeightOptions, InputError> {
-        match s {
-            "1" => Ok(WeightOptions::Kg),
-            "2" => Ok(WeightOptions::Gram),
-            "3" => Ok(WeightOptions::Pound),
-            _ => Err(InputError),
-        }
-    }
-}
-
-struct TemperatureStruct {
-    from: TemperatureOptions,
-    to: TemperatureOptions,
-    value: f32,
-}
-
-impl TemperatureStruct {
-    fn new(from: TemperatureOptions, to: TemperatureOptions, value: f32) -> TemperatureStruct {
-        TemperatureStruct { from, to, value }
-    }
-
-    fn convert(&self) -> f32 {
-        match self.from {
-            TemperatureOptions::Celcius => match self.to {
-                TemperatureOptions::Celcius => self.value,
-                TemperatureOptions::Kelvin => self.value,
-                TemperatureOptions::Fahrenheit => self.value,
-            },
-            TemperatureOptions::Kelvin => match self.to {
-                TemperatureOptions::Celcius => self.value,
-                TemperatureOptions::Kelvin => self.value,
-                TemperatureOptions::Fahrenheit => self.value,
-            },
-            TemperatureOptions::Fahrenheit => match self.to {
-                TemperatureOptions::Celcius => self.value,
-                TemperatureOptions::Kelvin => self.value,
-                TemperatureOptions::Fahrenheit => self.value,
-            },
-        }
-    }
-}
-
-struct DistanceStruct {
-    from: DistanceOptions,
-    to: DistanceOptions,
-    value: f32,
-}
-
-impl DistanceStruct {
-    fn new(from: DistanceOptions, to: DistanceOptions, value: f32) -> DistanceStruct {
-        DistanceStruct { from, to, value }
-    }
-
-    fn convert(&self) -> f32 {
-        match self.from {
-            DistanceOptions::Km => match self.to {
-                DistanceOptions::Km => self.value,
-                DistanceOptions::Meter => self.value * 1000 as f32,
-                DistanceOptions::Mile => self.value / 1.6,
-            },
-            DistanceOptions::Meter => match self.to {
-                DistanceOptions::Km => self.value / 1000 as f32,
-                DistanceOptions::Meter => self.value / 1600 as f32,
-                DistanceOptions::Mile => self.value,
-            },
-            DistanceOptions::Mile => match self.to {
-                DistanceOptions::Km => self.value * 1.6,
-                DistanceOptions::Meter => self.value * 1600 as f32,
-                DistanceOptions::Mile => self.value,
-            },
-        }
-    }
-}
-
-struct WeightStruct {
-    from: WeightOptions,
-    to: WeightOptions,
-    value: f32,
-}
-
-impl WeightStruct {
-    fn new(from: WeightOptions, to: WeightOptions, value: f32) -> WeightStruct {
-        WeightStruct { from, to, value }
-    }
-
-    fn convert(&self) -> f32 {
-        match self.from {
-            WeightOptions::Kg => match self.to {
-                WeightOptions::Kg => self.value,
-                WeightOptions::Gram => self.value * 1000 as f32,
-                WeightOptions::Pound => self.value * 2.2,
-            },
-            WeightOptions::Gram => match self.to {
-                WeightOptions::Kg => self.value / 1000 as f32,
-                WeightOptions::Gram => self.value,
-                WeightOptions::Pound => self.value / 453.5,
-            },
-            WeightOptions::Pound => match self.to {
-                WeightOptions::Kg => self.value / 2.2,
-                WeightOptions::Gram => self.value * 453.5,
-                WeightOptions::Pound => self.value,
-            },
         }
     }
 }
