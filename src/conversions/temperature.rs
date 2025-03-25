@@ -33,17 +33,19 @@ impl TemperatureStruct {
         match self.from {
             TemperatureOptions::Celcius => match self.to {
                 TemperatureOptions::Celcius => self.value,
-                TemperatureOptions::Kelvin => self.value,
-                TemperatureOptions::Fahrenheit => self.value,
+                TemperatureOptions::Kelvin => self.value + 273.15,
+                TemperatureOptions::Fahrenheit => (self.value * 9 as f32) / 5.0 + 32 as f32,
             },
             TemperatureOptions::Kelvin => match self.to {
-                TemperatureOptions::Celcius => self.value,
+                TemperatureOptions::Celcius => self.value - 273.15,
                 TemperatureOptions::Kelvin => self.value,
-                TemperatureOptions::Fahrenheit => self.value,
+                TemperatureOptions::Fahrenheit => {
+                    ((self.value - 273.15) * 9 as f32) / 5.0 + 32 as f32
+                }
             },
             TemperatureOptions::Fahrenheit => match self.to {
-                TemperatureOptions::Celcius => self.value,
-                TemperatureOptions::Kelvin => self.value,
+                TemperatureOptions::Celcius => (self.value - 32 as f32) * (5 / 9) as f32,
+                TemperatureOptions::Kelvin => (self.value - 32 as f32) * (5 / 9) as f32 + 273.15,
                 TemperatureOptions::Fahrenheit => self.value,
             },
         }
