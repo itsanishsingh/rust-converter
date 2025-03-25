@@ -1,215 +1,267 @@
-use core::{f32, panic};
 use std::io;
 
-const DISPLAY_MASS_OPTIONS: &str = "1. Kg
-2. Pound
-3. Gram";
+const ASK_FOR_TYPE: &str = "Select the number for one of the following conversion types:
+1. Temperature
+2. Distance
+3. Weight";
 
-const DISPLAY_DISTANCE_OPTIONS: &str = "1. Km
-2. Miles";
+const ASK_FOR_TEMPERATURE: &str = "Select the number for one of the following temperature types:
+1. Celcius
+2. Kelvin
+3. Fahrenheit";
 
-const DISPLAY_CONVERSION: &str = "1. Mass
-2. Distance";
+const ASK_FOR_DISTANCE: &str = "Select the number for one of the following distance types:
+1. Km
+2. Meter
+3. Mile";
 
-const ASK_FOR_UNITS: &str = "Enter the name of units, divided with a space";
+const ASK_FOR_WEIGHT: &str = "Select the number for one of the following weight types:
+1. Kg
+2. Gram
+3. Pound";
 
-const ASK_FOR_VALUE: &str = "Enter a number";
+const ASK_FOR_VALUE: &str = "Enter the value which you want to convert:";
 
-enum MassOptions {
+#[derive(Debug)]
+struct InputError;
+
+enum ConversionOptions {
+    Temperature,
+    Distance,
+    Weight,
+}
+
+impl ConversionOptions {
+    fn from_str(s: &str) -> Result<ConversionOptions, InputError> {
+        match s {
+            "1" => Ok(ConversionOptions::Temperature),
+            "2" => Ok(ConversionOptions::Distance),
+            "3" => Ok(ConversionOptions::Weight),
+            _ => Err(InputError),
+        }
+    }
+}
+
+enum TemperatureOptions {
+    Celcius,
+    Kelvin,
+    Fahrenheit,
+}
+
+impl TemperatureOptions {
+    fn from_str(s: &str) -> Result<TemperatureOptions, InputError> {
+        match s {
+            "1" => Ok(TemperatureOptions::Celcius),
+            "2" => Ok(TemperatureOptions::Kelvin),
+            "3" => Ok(TemperatureOptions::Fahrenheit),
+            _ => Err(InputError),
+        }
+    }
+}
+
+enum DistanceOptions {
+    Km,
+    Meter,
+    Mile,
+}
+
+impl DistanceOptions {
+    fn from_str(s: &str) -> Result<DistanceOptions, InputError> {
+        match s {
+            "1" => Ok(DistanceOptions::Km),
+            "2" => Ok(DistanceOptions::Meter),
+            "3" => Ok(DistanceOptions::Mile),
+            _ => Err(InputError),
+        }
+    }
+}
+
+enum WeightOptions {
     Kg,
-    Pound,
     Gram,
+    Pound,
 }
 
-struct MassConverter {
-    value: f32,
-    from: MassOptions,
-    to: MassOptions,
-}
-
-impl MassConverter {
-    fn new(value: f32, from: MassOptions, to: MassOptions) -> MassConverter {
-        MassConverter { value, from, to }
-    }
-
-    fn converter(&self) -> f32 {
-        match self.from {
-            MassOptions::Kg => match self.to {
-                MassOptions::Kg => self.value,
-                MassOptions::Pound => Self::kg_to_pound(self.value),
-                MassOptions::Gram => Self::kg_to_g(self.value),
-            },
-            MassOptions::Pound => match self.to {
-                MassOptions::Kg => Self::pound_to_kg(self.value),
-                MassOptions::Pound => self.value,
-                MassOptions::Gram => Self::pound_to_g(self.value),
-            },
-            MassOptions::Gram => match self.to {
-                MassOptions::Kg => Self::g_to_kg(self.value),
-                MassOptions::Pound => Self::g_to_pound(self.value),
-                MassOptions::Gram => self.value,
-            },
+impl WeightOptions {
+    fn from_str(s: &str) -> Result<WeightOptions, InputError> {
+        match s {
+            "1" => Ok(WeightOptions::Kg),
+            "2" => Ok(WeightOptions::Gram),
+            "3" => Ok(WeightOptions::Pound),
+            _ => Err(InputError),
         }
     }
-
-    fn kg_to_pound(value: f32) -> f32 {
-        value * 2.2
-    }
-
-    fn kg_to_g(value: f32) -> f32 {
-        value * 1000_f32
-    }
-
-    fn pound_to_kg(value: f32) -> f32 {
-        value / 2.2
-    }
-
-    fn pound_to_g(value: f32) -> f32 {
-        value / 2.2 * 1000.0
-    }
-
-    fn g_to_kg(value: f32) -> f32 {
-        value / 1000_f32
-    }
-
-    fn g_to_pound(value: f32) -> f32 {
-        value / 1000.0 * 2.2
-    }
 }
 
-struct DistanceConverter {
+struct TemperatureStruct {
+    from: TemperatureOptions,
+    to: TemperatureOptions,
     value: f32,
-    from: String,
-    to: String,
 }
 
-impl DistanceConverter {
-    fn new(value: f32, from: String, to: String) -> DistanceConverter {
-        DistanceConverter { value, from, to }
+impl TemperatureStruct {
+    fn new(from: TemperatureOptions, to: TemperatureOptions, value: f32) -> TemperatureStruct {
+        TemperatureStruct { from, to, value }
     }
 
-    fn converter(&self) -> f32 {
-        if self.from == "Kg" && self.to == "Pound" {
-            Self::km_to_mile(self.value)
-        } else {
-            0.0
-        }
-    }
-
-    fn km_to_mile(value: f32) -> f32 {
-        value / 1.6
-    }
-}
-
-enum Converter {
-    Mass(MassConverter),
-    Distance(DistanceConverter),
-}
-
-impl Converter {
     fn convert(&self) -> f32 {
-        match self {
-            Self::Mass(m) => m.converter(),
-            Self::Distance(d) => d.converter(),
+        match self.from {
+            TemperatureOptions::Celcius => match self.to {
+                TemperatureOptions::Celcius => self.value,
+                TemperatureOptions::Kelvin => self.value,
+                TemperatureOptions::Fahrenheit => self.value,
+            },
+            TemperatureOptions::Kelvin => match self.to {
+                TemperatureOptions::Celcius => self.value,
+                TemperatureOptions::Kelvin => self.value,
+                TemperatureOptions::Fahrenheit => self.value,
+            },
+            TemperatureOptions::Fahrenheit => match self.to {
+                TemperatureOptions::Celcius => self.value,
+                TemperatureOptions::Kelvin => self.value,
+                TemperatureOptions::Fahrenheit => self.value,
+            },
         }
     }
 }
 
-fn mass_conversion() {
-    println!("{}", DISPLAY_MASS_OPTIONS);
-
-    println!("{}", ASK_FOR_UNITS);
-    let mut mass_choice = String::new();
-    io::stdin()
-        .read_line(&mut mass_choice)
-        .expect("Failed to read line");
-
-    let choice: Vec<&str> = mass_choice.split_whitespace().collect();
-    let from = String::from(choice[0]).to_lowercase();
-    let to = String::from(choice[1]).to_lowercase();
-
-    println!("{}", ASK_FOR_VALUE);
-    let mut value = String::new();
-    io::stdin()
-        .read_line(&mut value)
-        .expect("Failed to read line");
-    let value: f32 = value.trim().parse().expect("Not an valid number");
-
-    let kg = String::from("kg");
-    let pound = String::from("pound");
-    let g = String::from("gram");
-
-    let from: MassOptions = if from == kg {
-        MassOptions::Kg
-    } else if from == pound {
-        MassOptions::Pound
-    } else if from == g {
-        MassOptions::Gram
-    } else {
-        panic!()
-    };
-
-    let to: MassOptions = if to == kg {
-        MassOptions::Kg
-    } else if to == pound {
-        MassOptions::Pound
-    } else if to == g {
-        MassOptions::Gram
-    } else {
-        panic!()
-    };
-
-    let mass_object = Converter::Mass(MassConverter::new(value, from, to));
-
-    let result = mass_object.convert();
-
-    println!("The value of {} after conversion is {}.", value, result);
+struct DistanceStruct {
+    from: DistanceOptions,
+    to: DistanceOptions,
+    value: f32,
 }
 
-fn distance_conversion() {
-    println!("{}", DISPLAY_DISTANCE_OPTIONS);
+impl DistanceStruct {
+    fn new(from: DistanceOptions, to: DistanceOptions, value: f32) -> DistanceStruct {
+        DistanceStruct { from, to, value }
+    }
 
-    println!("{}", ASK_FOR_UNITS);
-    let mut distance_choice = String::new();
-    io::stdin()
-        .read_line(&mut distance_choice)
-        .expect("Failed to read line");
-
-    let choice: Vec<&str> = distance_choice.split_whitespace().collect();
-    let from = String::from(choice[0]).to_lowercase();
-    let to = String::from(choice[1]).to_lowercase();
-    println!("{}", ASK_FOR_VALUE);
-    let mut value = String::new();
-    io::stdin()
-        .read_line(&mut value)
-        .expect("Failed to read line");
-    let value: f32 = value.trim().parse().expect("Not an valid number");
-
-    println!("{}, {}, {}", value, from, to);
-
-    let distance_object = Converter::Distance(DistanceConverter::new(value, from, to));
-
-    let result = distance_object.convert();
-
-    println!("The value of {} after conversion is {}.", value, result);
+    fn convert(&self) -> f32 {
+        match self.from {
+            DistanceOptions::Km => match self.to {
+                DistanceOptions::Km => self.value,
+                DistanceOptions::Meter => self.value * 1000 as f32,
+                DistanceOptions::Mile => self.value / 1.6,
+            },
+            DistanceOptions::Meter => match self.to {
+                DistanceOptions::Km => self.value / 1000 as f32,
+                DistanceOptions::Meter => self.value / 1600 as f32,
+                DistanceOptions::Mile => self.value,
+            },
+            DistanceOptions::Mile => match self.to {
+                DistanceOptions::Km => self.value * 1.6,
+                DistanceOptions::Meter => self.value * 1600 as f32,
+                DistanceOptions::Mile => self.value,
+            },
+        }
+    }
 }
 
-fn conversion_logic(choice: u32) {
-    match choice {
-        1 => mass_conversion(),
-        2 => distance_conversion(),
-        _ => {
-            println!("Not the valid choice.")
+struct WeightStruct {
+    from: WeightOptions,
+    to: WeightOptions,
+    value: f32,
+}
+
+impl WeightStruct {
+    fn new(from: WeightOptions, to: WeightOptions, value: f32) -> WeightStruct {
+        WeightStruct { from, to, value }
+    }
+
+    fn convert(&self) -> f32 {
+        match self.from {
+            WeightOptions::Kg => match self.to {
+                WeightOptions::Kg => self.value,
+                WeightOptions::Gram => self.value * 1000 as f32,
+                WeightOptions::Pound => self.value * 2.2,
+            },
+            WeightOptions::Gram => match self.to {
+                WeightOptions::Kg => self.value / 1000 as f32,
+                WeightOptions::Gram => self.value,
+                WeightOptions::Pound => self.value / 453.5,
+            },
+            WeightOptions::Pound => match self.to {
+                WeightOptions::Kg => self.value / 2.2,
+                WeightOptions::Gram => self.value * 453.5,
+                WeightOptions::Pound => self.value,
+            },
         }
     }
 }
 
 fn main() {
-    println!("{}", DISPLAY_CONVERSION);
-    let mut choice = String::new();
+    println!("{}", ASK_FOR_TYPE);
+    let mut conversion_type = String::new();
+
     io::stdin()
-        .read_line(&mut choice)
-        .expect("Failed to read line");
-    let choice: u32 = choice.trim().parse().expect("Not an integer");
-    conversion_logic(choice)
+        .read_line(&mut conversion_type)
+        .expect("Reading input failed.");
+
+    let conversion_type = ConversionOptions::from_str(&conversion_type.trim()).unwrap();
+    conversion_process(conversion_type);
+}
+
+fn conversion_process(conversion_type: ConversionOptions) {
+    match conversion_type {
+        ConversionOptions::Temperature => {
+            println!("{}", ASK_FOR_TEMPERATURE);
+            let (from_org, to_org, value) = get_all_values();
+            let from = TemperatureOptions::from_str(from_org.trim()).unwrap();
+            let to = TemperatureOptions::from_str(to_org.trim()).unwrap();
+            let temp_struct = TemperatureStruct::new(from, to, value);
+            let converted_value = temp_struct.convert();
+            println!(
+                "The value {} from {} to {} is {}.",
+                value, from_org, to_org, converted_value
+            );
+        }
+        ConversionOptions::Distance => {
+            println!("{}", ASK_FOR_DISTANCE);
+            let (from_org, to_org, value) = get_all_values();
+            let from = DistanceOptions::from_str(from_org.trim()).unwrap();
+            let to = DistanceOptions::from_str(to_org.trim()).unwrap();
+            let dist_struct = DistanceStruct::new(from, to, value);
+            let converted_value = dist_struct.convert();
+            println!(
+                "The value {} from {} to {} is {}.",
+                value, from_org, to_org, converted_value
+            );
+        }
+        ConversionOptions::Weight => {
+            println!("{}", ASK_FOR_WEIGHT);
+            let (from_org, to_org, value) = get_all_values();
+            let from = WeightOptions::from_str(from_org.trim()).unwrap();
+            let to = WeightOptions::from_str(to_org.trim()).unwrap();
+            let weight_struct = WeightStruct::new(from, to, value);
+            let converted_value = weight_struct.convert();
+            println!(
+                "The value {} from {} to {} is {}.",
+                value, from_org, to_org, converted_value
+            );
+        }
+    }
+}
+
+fn get_all_values() -> (String, String, f32) {
+    let mut from = String::new();
+    let mut to = String::new();
+    let mut value = String::new();
+
+    println!("Enter number for from:");
+    io::stdin()
+        .read_line(&mut from)
+        .expect("Reading input failed");
+
+    println!("Enter number for to:");
+    io::stdin()
+        .read_line(&mut to)
+        .expect("Reading input failed");
+
+    println!("{}", ASK_FOR_VALUE);
+    io::stdin()
+        .read_line(&mut value)
+        .expect("Reading input failed");
+    let value: f32 = value.trim().parse().unwrap();
+
+    (from, to, value)
 }
